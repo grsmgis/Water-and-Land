@@ -1,6 +1,7 @@
 CC = gcc 
-INCLUDES = -I/home/npatel79/builds/work/libs/nc4libs/include
-EXECUTABLES =  try
+#please replace the file paths to where the includes for netcdf are located
+INCLUDES = -I/home/npatel79/builds/work/libs/nc4libs/include -I.
+EXECUTABLES =  convert
 CFLAGS = $(INCLUDES)
 Lib = -L/home/npatel79/builds/work/libs/nc4libs/lib/ -lnetcdf
 all: $(EXECUTABLES)
