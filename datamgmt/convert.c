@@ -72,7 +72,6 @@ void list_files_and_variables(char * Path, FILE * fptr){
 					int * index = malloc(sizeof(int));
 					*index = 0;
 					listFilesRecursively(path2, fpaths, index);
-					printf("index %i\n", *index);
 					_qsort(fpaths, sizeof(char*), 0, 1247, (int (*)(void*, void*))(cmpstr));
 					for(int i = 0; i < 1248; i++){
 						fprintf(fptr, "%s\n",fpaths[i]);
