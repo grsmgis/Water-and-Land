@@ -27,7 +27,6 @@ void listFilesRecursively(char *basePath, char ** fpaths, int *index)
 	{
 		if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
 		{
-			// printf("%s\n", dp->d_name);
 			// Construct new path from our base path
 			strcpy(path, basePath);
 			strcat(path, "/");
