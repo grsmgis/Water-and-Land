@@ -10,9 +10,9 @@
 
 2. Make libfdr library:
 
-    *```$ cd libfdr```
+    * ```$ cd libfdr```
 
-    *```$ make```
+    * ```$ make```
 
 ### make_nc.c
 
