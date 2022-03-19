@@ -18,7 +18,7 @@
 
 * This file requires two files for it to work properly, name_coord.txt and get_required_info.c
 
-#### get_required_info
+### get_required_info
 
 * Edit the file path in getrequired_info.c then compile and execute. There will now be a file called get_required_info.txt
 
@@ -30,11 +30,7 @@
   * var: name of the variable followed by a list of file paths in order by date 
   * end_of_main: signifies the end of main
 
-### Compile make_nc.c and get_required_info.c
-
-* ```$ make``` command in the dataconversion will do this for you
-
-#### get_coord.py
+### get_coord.py
 
 * this file generates (region)_coord.txt file that is needed
 * change the file paths as needed by editing the python file and executing it
@@ -45,3 +41,11 @@
   * list of latitudes
   * list of longitudes
   * list of dem
+
+### Compile make_nc.c and get_required_info.c
+
+* ```$ make``` command in the dataconversion will do this for you
+
+### make_nc
+
+* After all previous steps are followed running ```$ ./make_nc``` will creat all of the nc files named (mainvar).nc, with mainvar corresponding to the main label/region name in get_required_info.txt
