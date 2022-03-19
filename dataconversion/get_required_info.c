@@ -108,8 +108,8 @@ void list_files_and_variables(char * Path, FILE * fptr){
 int main(){
 	FILE *fptr;
 	fptr = fopen("required_info.txt", "w+");
+	//Edit this
 	list_files_and_variables("../../../../mnt/seenas2/data/DHCM/Park_service", fptr);
-	// list_files_and_variables("../to_convert", fptr);
 	fclose(fptr);
 	return 0;
 }
