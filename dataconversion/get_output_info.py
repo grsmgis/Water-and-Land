@@ -6,8 +6,7 @@ fp = open("required_info.txt", "w+")
 # assign directory
 starting_dir = "../outputvars"
 for folder in os.listdir(starting_dir):
-    important_files = {"soilmoisture1":[], "soilmoisture2":[], "soilmoisture3":[], "soilmoisture4":[], "interflowarea":[], "overlandflowarea":[], "streamflowarea":[] }
-    # important_files = {"soilmoisture1":[]}
+    important_files = {"soilmoisture1":[], "soilmoisture2":[], "soilmoisture3":[], "soilmoisture4":[], "interflowarea":[], "overlandflowarea":[], "streamflowarea":[] }  
     rootdir = folder
     for subdir, dirs, files in os.walk(starting_dir+ '/' + rootdir):
         for file in files:

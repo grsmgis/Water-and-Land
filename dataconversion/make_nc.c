@@ -56,7 +56,6 @@ void set_variables(int Ntime1, char * map_info, IS is, write_nc * w_n){
     int correct_label = 0;
     w_n->Nvars = 0;
     while(get_line(is) >= 0){
-        // printf("this is fields 0 %s\n", is->fields[0]);
         if(correct_label != 1){
             if(strcmp(is->fields[0], "total_variables:") == 0 ){
                 correct_label = 1;
@@ -155,10 +154,8 @@ void create_and_define(char * nc_name, write_nc * w_n){
                 continue;
             }
             else{
-                // printf("file: %s\n", cvar[i]->name);
                 if ((w_n->retval = nc_def_var(w_n->ncid, cvar[i]->name, NC_FLOAT, NDIMS, w_n->dimids, &var_id)))
                     ERR(w_n->retval);
-                // printf("file: %s\n", w_n->vars[i]);
             }
             if(strcmp(cvar[i]->description, "NONE") ==0){
                 w_n->vars_id[i] = var_id;
@@ -225,7 +222,6 @@ void write_region_info( char * map_info, write_nc * w_n){
                 }
                 else if(strcmp(ins->fields[0], "dem") ==0){
                     float dem[w_n->Nlat][w_n->Nlong];
-                    printf("lat %i, long %i", w_n->Nlat, w_n->Nlong);
                     for(int i = 0; i < w_n->Nlat; i++){
                         for(int j = 0; j < w_n->Nlong; j++ ){
                             get_line(ins);
@@ -254,7 +250,6 @@ void write_region_info( char * map_info, write_nc * w_n){
 }
 //read from a input file and write that to the netcdf (file should contain 24 hr data)
 void read_file_write(char * fname, int var_offset, write_nc * w_n ){
-    // printf("writing %i", var_offset);
     float data_out[w_n->Nlong][w_n->Nlat];
     FILE *ptr = fopen(fname, "rb");
     if (ptr == NULL) {
@@ -354,10 +349,6 @@ int main(){
                         break;
                     }
                 }
-                // for(int i = 0; i < w_n->Nvars; i++){
-                //     printf( "s var:  %s\n\n", w_n->vars[i]);
-                // }
-                printf( "writing var:  %s\n\n", w_n->vars[var_offset]);
                 continue; 
             }
             char * fname = strdup(is->fields[0]);
@@ -366,7 +357,6 @@ int main(){
 
         }
     }
-    
     
     jettison_inputstruct(is);
     
