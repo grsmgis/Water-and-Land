@@ -13,47 +13,42 @@ struct write_nc{
     int ncid;
     int retval;
     int dimids[NDIMS];
-    int Nlong;
-    int Nlat; 
-    int Ntime;
-    int Nvars;
+    int Nlong, Nlat, Ntime, Nvars, Nindnanregion, Nindregion, Nindregionbdy;
     int current_time;
-    int lat_id, long_id, time_id, dem_id, lat_varid, lon_varid, dem_varid;
+    int lat_id, long_id, time_id, dem_id, indnanregion_id, indregion_id, indregionbdy_id, bdy_id,
+    lat_varid, long_varid, dem_varid, indnanregion_varid, indregion_varid, indregionbdy_varid, bdy_varid;
     int vars_id[100];
     char * vars[100];
-    float longs[100];
-    float lats[100];
-    float dems[100][100];
     size_t count[NDIMS];
     size_t start[NDIMS];
 
 };
-//constructor, given a file name of the coordinats, it will set the according variables
-void set_variables(int Ntime1, char * coord_file, IS is, write_nc * w_n){
-    FILE * fid = fopen(coord_file, "r");
-    
-    if (fid == NULL) {
-        perror("Failed: opening coord_file");
-        exit(1);
-    }
+//for renameing variables optional
+typedef struct change_varname change_varname ;
+struct change_varname{
+    char * original;
+    char * name;
+    char * description;
+};
 
-    if ( fscanf(fid, "%i", &w_n->Nlat) ==0 || fscanf(fid, "%i", &w_n->Nlong)==0){
-        perror("file not in correct format");
-        exit(1);
-    }
-    
-    for(int i = 0; i < w_n->Nlat; i++){
-        fscanf(fid, "%f",&w_n->lats[i]);
-    }
-    for(int i = 0; i < w_n->Nlong; i++){
-        fscanf(fid, "%f",&w_n->longs[i]);
-    }
-    for(int i = 0; i < w_n->Nlat; i++){
-        for(int j = 0; j < w_n->Nlong; j++ ){
-            fscanf(fid, "%f", &w_n->dems[i][j]);
+//constructor, given a file name of the coordinats, it will set the according variables
+void set_variables(int Ntime1, char * map_info, IS is, write_nc * w_n){
+    IS ins = new_inputstruct(map_info);
+        get_line(ins);
+        if(strcmp(ins->fields[0], "define") == 0){
+            while(get_line(ins) >= 0){
+                if(strcmp(ins->fields[0], "end_define") ==0){
+                    break;
+                }
+                else if(strcmp(ins->fields[0], "lat-long") ==0){
+                    get_line(ins);
+                    w_n->Nlat = atoi(ins->fields[0]);
+                    get_line(ins);
+                    w_n->Nlong = atoi(ins->fields[0]);
+                }
+            }
         }
-    }
-    fclose(fid);
+    jettison_inputstruct(ins);
         
         
     w_n->Ntime = Ntime1;
@@ -102,20 +97,22 @@ void create_and_define(char * nc_name, write_nc * w_n){
         ERR(w_n->retval);
 
     /*Define each the coordinate variables*/
-    if ((w_n->retval = nc_def_var(w_n->ncid, "longitude", NC_FLOAT, 1, &w_n->long_id, &w_n->lon_varid)))
+    if ((w_n->retval = nc_def_var(w_n->ncid, "longitude", NC_FLOAT, 1, &w_n->long_id, &w_n->long_varid)))
         ERR(w_n->retval);
     
     if ((w_n->retval = nc_def_var(w_n->ncid, "latitude", NC_FLOAT, 1, &w_n->lat_id, &w_n->lat_varid)))
         ERR(w_n->retval);
     
-    /*Define DEM variable*/
-    if ((w_n->retval = nc_def_var(w_n->ncid, "Dem", NC_FLOAT, 2, &w_n->dem_id, &w_n->dem_varid)))
+    /*Define region variables*/
+    if ((w_n->retval = nc_def_var(w_n->ncid, "dem", NC_FLOAT, 2, &w_n->dem_id, &w_n->dem_varid)))
         ERR(w_n->retval);
-    
+    if ((w_n->retval = nc_def_var(w_n->ncid, "bdy", NC_FLOAT, 2, &w_n->bdy_id, &w_n->bdy_varid)))
+        ERR(w_n->retval);
+
     /* Assign units attributes to coordinate variables. */
     if ((w_n->retval = nc_put_att_text(w_n->ncid, w_n->lat_varid, "units", strlen(DEGREES_NORTH), DEGREES_NORTH)))
         ERR(w_n->retval);
-    if ((w_n->retval = nc_put_att_text(w_n->ncid, w_n->lon_varid, "units", strlen(DEGREES_EAST), DEGREES_EAST)))
+    if ((w_n->retval = nc_put_att_text(w_n->ncid, w_n->long_varid, "units", strlen(DEGREES_EAST), DEGREES_EAST)))
         ERR(w_n->retval);
    
     /* The dimids array is used to pass the dimids of the dimensions of
@@ -123,38 +120,136 @@ void create_and_define(char * nc_name, write_nc * w_n){
     w_n->dimids[0] = w_n->time_id;
     w_n->dimids[1] = w_n->long_id;
     w_n->dimids[2] = w_n->lat_id;
+    
 
-    //define the variables
-    for(int i = 0; i < w_n->Nvars; i++){
-        int var_id;
-        if ((w_n->retval = nc_def_var(w_n->ncid, w_n->vars[i], NC_FLOAT, NDIMS, w_n->dimids, &var_id)))
-            ERR(w_n->retval);
-        w_n->vars_id[i] = var_id;
+    FILE * varnames;
+    //see if you need to rename the variables (optional)
+    if(varnames = fopen("varnames.txt", "r")){
+        fclose(varnames);
+        IS ins;
+        change_varname *cvar[w_n->Nvars];
+        for(int i =0; i < w_n->Nvars; i++){
+            cvar[i] = (change_varname *) malloc(sizeof(change_varname));
+            cvar[i]->original = strdup(w_n->vars[i]);
+            cvar[i]->name = NULL;
+            cvar[i]->description = NULL;
+        }
+        ins = new_inputstruct("varnames.txt");
+        while(get_line(ins) >= 0) {
+            for(int i = 0; i < w_n->Nvars; i++){
+                if(strcmp(ins->fields[0], w_n->vars[i]) == 0){
+                    get_line(ins);
+                    cvar[i]->name = strdup(ins->fields[0]);
+                    get_line(ins);
+                    cvar[i]->description = strdup(ins->fields[0]);
+                }
+            }
+        }
+        jettison_inputstruct(ins);
+        for(int i = 0; i < w_n->Nvars; i++){
+            int var_id;
+            if(cvar[i]->name== NULL){
+                if ((w_n->retval = nc_def_var(w_n->ncid, cvar[i]->original, NC_FLOAT, NDIMS, w_n->dimids, &var_id)))
+                    ERR(w_n->retval);
+                w_n->vars_id[i] = var_id;
+                continue;
+            }
+            else{
+                // printf("file: %s\n", cvar[i]->name);
+                if ((w_n->retval = nc_def_var(w_n->ncid, cvar[i]->name, NC_FLOAT, NDIMS, w_n->dimids, &var_id)))
+                    ERR(w_n->retval);
+                // printf("file: %s\n", w_n->vars[i]);
+            }
+            if(strcmp(cvar[i]->description, "NONE") ==0){
+                w_n->vars_id[i] = var_id;
+                continue;
+            }
+
+            w_n->vars_id[i] = var_id;
+            if ((w_n->retval = nc_put_att_text(w_n->ncid, w_n->vars_id[i], "units", strlen(cvar[i]->description), cvar[i]->description)))
+                ERR(w_n->retval);
+        }
+
+        //free memory:
+        for(int i = 0; i < w_n->Nvars; i++){
+            free(cvar[i]->original);
+            if(cvar[i]->name != NULL) free(cvar[i]->name);
+            if(cvar[i]->description!= NULL) free(cvar[i]->description);
+            free(cvar[i]);
+        }
+
     }
-  
+    //define the variables
+    else{
+        for(int i = 0; i < w_n->Nvars; i++){
+            int var_id;
+            if ((w_n->retval = nc_def_var(w_n->ncid, w_n->vars[i], NC_FLOAT, NDIMS, w_n->dimids, &var_id)))
+                ERR(w_n->retval);
+            w_n->vars_id[i] = var_id;
+        }
+    }
                 
     /* End define mode. */
     if ((w_n->retval = nc_enddef(w_n->ncid)))
-    ERR(w_n->retval);
+        ERR(w_n->retval);
     
 }
 
-void write_coords( write_nc * w_n){
-    /* Write the coordinate variable data. This will put the latitudes
-    and longitudes of our data grid into the netCDF file. */
-    if ((w_n->retval = nc_put_var_float(w_n->ncid, w_n->lat_id, &w_n->lats[0])))
-    ERR(w_n->retval);
-    if ((w_n->retval = nc_put_var_float(w_n->ncid, w_n->long_id, &w_n->longs[0])))
-    ERR(w_n->retval);
+void write_region_info( char * map_info, write_nc * w_n){
 
-    float t_dem[w_n->Nlat][w_n->Nlong];
-    for(int i = 0; i < w_n->Nlat; i++){
-        for(int j = 0; j < w_n->Nlong; j++ ){
-            t_dem[i][j] = w_n->dems[i][j];
+    IS ins = new_inputstruct(map_info);
+        while(get_line(ins)>=0){
+            if(strcmp(ins->fields[0], "end_define") ==0){
+                    break;
+                }
         }
-    }
-    if ((w_n->retval = nc_put_var_float(w_n->ncid, w_n->dem_varid, &t_dem[0][0])))
-    ERR(w_n->retval);
+        if(strcmp(ins->fields[0], "end_define") == 0){
+            while(get_line(ins) >= 0){
+                if(strcmp(ins->fields[0], "lat") ==0){
+                    float lats[w_n->Nlat];     
+                    for(int i = 0; i < w_n->Nlat; i++){
+                        get_line(ins);
+                        lats[i] = atof(ins->fields[0]);
+                    }
+                    if ((w_n->retval = nc_put_var_float(w_n->ncid, w_n->lat_id, &lats[0])))
+                        ERR(w_n->retval);
+                }
+                else if(strcmp(ins->fields[0], "lon") ==0){
+                    float longs[w_n->Nlong];     
+                    for(int i = 0; i < w_n->Nlong; i++){
+                        get_line(ins);
+                        longs[i] = atof(ins->fields[0]);
+                    }
+                    if ((w_n->retval = nc_put_var_float(w_n->ncid, w_n->long_id, &longs[0])))
+                        ERR(w_n->retval);
+                }
+                else if(strcmp(ins->fields[0], "dem") ==0){
+                    float dem[w_n->Nlat][w_n->Nlong];
+                    printf("lat %i, long %i", w_n->Nlat, w_n->Nlong);
+                    for(int i = 0; i < w_n->Nlat; i++){
+                        for(int j = 0; j < w_n->Nlong; j++ ){
+                            get_line(ins);
+                            dem[i][j] = atof(ins->fields[0]);
+                        }
+                    }
+                    if ((w_n->retval = nc_put_var_float(w_n->ncid, w_n->dem_varid, &dem[0][0])))
+                        ERR(w_n->retval);
+
+                }
+                else if(strcmp(ins->fields[0], "bdy") ==0){
+                    float bdy[w_n->Nlat][w_n->Nlong];
+                    for(int i = 0; i < w_n->Nlat; i++){
+                        for(int j = 0; j < w_n->Nlong; j++ ){
+                            get_line(ins);
+                            bdy[i][j] = atof(ins->fields[0]);
+                        }
+                    }
+                    if ((w_n->retval = nc_put_var_float(w_n->ncid, w_n->bdy_varid, &bdy[0][0])))
+                        ERR(w_n->retval);
+                }
+            }
+        }
+    jettison_inputstruct(ins);
 
 }
 //read from a input file and write that to the netcdf (file should contain 24 hr data)
@@ -213,7 +308,7 @@ int main(){
                 char main_name[1000];
                 strcpy(main_name, is->fields[1]);
                 strcpy(tmp, main_name);
-                strcat(tmp,"_coord.txt\0");
+                strcat(tmp,"_map_info.txt\0");
                 
                 //declare write_nc struct object, get the coordinats from the correct file
                 //get the variable names
@@ -226,8 +321,10 @@ int main(){
                 //create the nc file and define all of the variables and exit define mode
                 create_and_define(tmp, w_n);
 
+                strcpy(tmp, main_name);
+                strcat(tmp,"_map_info.txt\0");
                 //write out the coordinate variable data
-                write_coords(w_n);
+                write_region_info(tmp,w_n);
                 correct =1;
             // }
             // else{
