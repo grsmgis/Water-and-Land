@@ -80,7 +80,7 @@ void set_variables(int Ntime1, char * map_info, IS is, write_nc * w_n){
     w_n->start[2] = 0;
 }
 
-//creating t
+//creating all the needed variables and defining them
 void create_and_define(char * nc_name, write_nc * w_n){
     printf("name of nc file: %s\n", nc_name);
     if ((w_n->retval = nc_create(nc_name, NC_CLOBBER, &w_n->ncid)))

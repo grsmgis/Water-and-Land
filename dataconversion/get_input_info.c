@@ -105,11 +105,16 @@ void list_files_and_variables(char * Path, FILE * fptr){
 
 
 
-int main(){
+int main(int argc, char**argv){
 	FILE *fptr;
 	fptr = fopen("required_info.txt", "w+");
-	//Edit this
-	list_files_and_variables("../../../../mnt/seenas2/data/DHCM/Park_service", fptr);
+	if(argc != 2){
+		printf("Please specity file path")
+		exit(1);
+	}
+	char * file_path = strdup(argv[1]);
+	list_files_and_variables(file_path, fptr);
 	fclose(fptr);
+	free(file_path);
 	return 0;
 }
