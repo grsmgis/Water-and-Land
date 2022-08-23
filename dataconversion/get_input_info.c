@@ -109,7 +109,7 @@ int main(int argc, char**argv){
 	FILE *fptr;
 	fptr = fopen("required_info.txt", "w+");
 	if(argc != 2){
-		printf("Please specity file path")
+		printf("Please specity file path");
 		exit(1);
 	}
 	char * file_path = strdup(argv[1]);

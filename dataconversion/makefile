@@ -12,4 +12,4 @@ make_nc: make_nc.c
 	$(CC) -ggdb3 $(CFLAGS) -o make_nc make_nc.c $(Lib)
 
 clean:
-	rm core $(EXECUTABLES) *.o
+	rm $(EXECUTABLES)
