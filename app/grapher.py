@@ -63,25 +63,26 @@ def graph(i_ncpath, i_variable, i_date, i_hour, i_rname):
     np.copyto(mask, data, where = mask == 0)
     data = mask
 
-    plt.imshow(data)
 
-    cbar = plt.colorbar()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    im = ax.imshow(data)
+    cbar = fig.colorbar(im, ax=ax)
     try:
         tmp = vars.getncattr('units')
         fa = tmp.replace('_', ' ')
         cbar.set_label(fa, ha='center',  wrap=True)
     except:
         pass
-    var_name = i_variable.replace('_', ' ')
-    plt.title(var_name,ha='center', y = 1.02,  wrap=True)
-    plt.ylabel("Latitude")
-    plt.xlabel("Longitude")
-    plt.xticks(indexed_lons, lons)
-    plt.xticks(rotation = 90, fontsize = 8)
-    plt.yticks(indexed_lats, lats,  fontsize = 8)
 
-    plt.tight_layout()
-    return plt
+    var_name = i_variable.replace('_', ' ')
+    ax.set_title(var_name, ha='center', y = 1.02,  wrap=True)
+    ax.set_ylabel('Latitude')
+    ax.set_xlabel('Longitude')
+    ax.set_xticks(indexed_lons, lons, rotation=90, fontsize=8)
+    ax.set_yticks(indexed_lats, lats, fontsize=8)
+    fig.tight_layout()
+    return fig
 
 def get_numpy(i_ncpath, i_variable, i_date, i_hour):
     filepath = i_ncpath

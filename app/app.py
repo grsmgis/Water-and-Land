@@ -7,6 +7,7 @@ import json
 app = Flask(__name__)
 
 dataloc = '/data/'
+in_out_map = {'input': '1', 'output': '0'}
 
 @app.route('/', methods=["GET", "POST"])
 def gfg():
@@ -16,12 +17,20 @@ def gfg():
 def getVarNames():
     body = request.get_json()
     path = body['ncpath']
-    return jsonify(getVariableNames(dataloc + path + '.nc'))
+    var_type = body['type']
+    if var_type == 'input':
+        return jsonify(getVariableNames(dataloc + '1/' + path + '.nc'))
+    elif var_type == 'output':
+        return jsonify(getVariableNames(dataloc + '0/' + path + '.nc'))
+    else:
+        return jsonify([])
 
 @app.route('/render/', methods=["GET", "POST"])
 def render():
     if request.method == 'POST': 
         body = request.get_json()
+
+        var_type = in_out_map[body['type']]
 
         ncpath = body['ncpath']
         variable =  body['variable']
@@ -34,28 +43,25 @@ def render():
         date += sdate[0]
 
         hour = body['hour']
-        plt = graph(dataloc + ncpath + ".nc", variable, date, hour, ncpath)
+        fig = graph(dataloc + f'{var_type}/' + ncpath + ".nc", variable, date, hour, ncpath)
 
-        with tempfile.NamedTemporaryFile("r+b", delete=True) as fd:
-            file_name = fd.name + '.png'
-            plt.savefig(file_name)
-            plt.close("all")
-
-        with open(file_name, 'rb') as image:
-            image_data = BytesIO(image.read())
-
+        image_data = BytesIO()
+        fig.savefig(image_data, format='png')
+        plt.close(fig)
+        image_data.seek(0)
         return send_file(image_data, mimetype='image/png')
 
 @app.route('/data/', methods=["POST"])
 def get_data():
-    data = request.get_json()
-    body = json.loads(data) 
+    body = request.get_json()
+
+    var_type = in_out_map[body['type']]
     ncpath = body['ncpath']
     variable =  body['variable']
     date = body['date']
     hour = body['hour']
         
-    numpy_arr = get_numpy(dataloc + ncpath + ".nc", variable, date, hour)
+    numpy_arr = get_numpy(dataloc + f'{var_type}/' + ncpath + ".nc", variable, date, hour)
 
     return jsonify(numpy_arr.tolist())
 
