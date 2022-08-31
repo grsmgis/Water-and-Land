@@ -13,6 +13,9 @@
     * ```$ cd libfdr```
 
     * ```$ make```
+3. Compile make_nc.c and get_input_info.c
+
+* ```$ make``` command in the dataconversion directory will do this for you
 
 ### make_nc.c
 
@@ -22,14 +25,17 @@
 ### required_info.txt
 
 * For Input Variables:
-  * get_required_info.c
-    * Edit the file path in getrequired_info.c then compile and execute. There will now be a file called get_required_info.txt
-    * This is a c program that goes through a dectory and compiles a list of information and produces a text file called ```required_info.txt```
+  * get_input_info.c
+    * After files have been compiled throgh the make command, send the file path the only command line argument:
+      * ```$ ./get_input_info path/to/rawfiles```
+    * This is a c program that goes through a dectory and compiles a list of information and produces a text file called
+      * ```required_info.txt```
 
-* For Outpur Variables:
+* For Output Variables:
   * get_output_info.py
     * In the file the import files that refrence the variabls are in the dictionary and you can add to them as you see fit.
-    * You have to give the correct path to the starting directory (for all file names this sould work but for the PRB file it is not named the same as other files, so I would suggest putting that in its own directory and running that region individually with the ``main = foldersplit("_")[0][3:]`` being changed to ``main = foldersplit("_")[0][4:]``
+    * You have to give the correct path to the starting directory as a command line argument:
+      * ```$ python3 get_ouypuy_info path/to/raw/output/folder/```
 
 * Required_info.txt:
   * Main: name of the region and what the nc file will be named
@@ -42,9 +48,9 @@
 
 * Files are needed in both Input and Output file generation.
 * Uses the dem and region mat files for each region.
-* This file generates (region)_coord.txt file that is needed
-* Change the file paths as needed by editing the python file and executing it
-  * ```$ python get_coord.py```
+* This file generates (region)_coord.txt file(s) that are needed
+* Pass the base_path to the GSMNP_Geo_Info directory as a command line argument:
+  * ```$ python get_coord.py path/to/GSMNP_Geo_Info/```
 * Contents of the created file:
   * number of latitudes
   * number of longitudes
@@ -53,9 +59,12 @@
   * list of dem
   * list of bdy
 
-### Compile make_nc.c and get_required_info.c
+### varnames.txt
 
-* ```$ make``` command in the dataconversion will do this for you
+* Optional file that will be used to translate variable names to be what you want with the unit type you want. To make your own or add variables follow template:
+  * Current Name of Variable
+  * New Name of variable
+  * Unit type of the variable (```NONE``` if no type is needed)
 
 ### make_nc
 
