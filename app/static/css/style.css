@@ -6,6 +6,14 @@ html {
 h1 {
   font-size: 36px;
 }
+h2 {
+  font-size: 24px;
+  background: black;
+  color: white;
+  margin: 0px;
+  padding-left: 20px;
+  padding-bottom: 20px;
+}
 body{
   background-color: white;
 }
@@ -15,14 +23,13 @@ body{
     background: black;
     color: white;
     font-size: 20px;
-  }
-  header,
-  footer {
-    min-width: 1246px;
-  }
+}
+header,
+footer {
+  min-width: 1246px;
+}
 
 .form{
-
     background-color: #000;
     color: white;
     text-align: left;
@@ -51,4 +58,15 @@ button{
   border-radius: 4px;
   background-color: #80807d;
   color: white
+}
+
+.column {
+  float: left;
+  width: 50%;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
 }
