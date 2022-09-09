@@ -13,19 +13,29 @@
 	<div class="header">
 		<h1>Render DCHM</h1>
 	</div>
-	<div class="row">
+	<div class="row" id="black">
+		<div class="column">
+			<h2>Basin Selection</h2>
+			<div class="form">
+				<label for="region">Basin: </label>
+				<select name="basin" id="basin">
+					<option value="PRB">Pigeon River Basin (PRB)</option>
+					<option value="LTTB">Little Tennessee/Tuckasegee Basins (LTTB)</option>
+					<option value="LFBB" selected>Lower French Broad Basin (LFBB)</option>
+					<option value="LPRB">Little Pigeon River Basin (LPRB)</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="column" >
+			<img src="/static/img/LFBB.png" class="basin-map" id="basin-map">
+		</div>
+	</div>
+	<div class="row" id="black">
 		<!-- Input Var Form -->
 		<div class="column">
 			<h2>Input Variables</h2>
 			<div class="form">
-				<label for="region-input">Basin: </label>
-				<select name="basin-input" id="basin-input">
-					<option value="PRB">PRB</option>
-					<option value="LTTB">LTTB</option>
-					<option value="LFBB" selected>LFBB</option>
-					<option value="LPRB">LPRB</option>
-				</select>
-				<br> 
 				<label for="varname-input">Variable:</label>
 				<select name="vname-input" id="varname-input"></select>
 				<br> 
@@ -33,21 +43,14 @@
 				<input type="date" id="date-input" name="date-input" min="2016-08-01" max="2019-12-31" value="2016-08-01">
 				<br> 
 				<label for="hour-input">Hour:</label>
-				<input type="number" id="hour-input" name="hour-input" min="1" max="24" value="1">
+				<input type="range" id="hour-input" name="hour-input" min="1" max="24" value="1" oninput="this.nextElementSibling.value = this.value">
+				<output>1</output>
 			</div>
 		</div>
 		<!-- Output Var Form -->
 		<div class="column">
 			<h2>Output Variables</h2>
 			<div class="form">
-				<label for="region-output">Basin: </label>
-				<select name="basin-output" id="basin-output">
-					<option value="PRB">PRB</option>
-					<option value="LTTB">LTTB</option>
-					<option value="LFBB" selected>LFBB</option>
-					<option value="LPRB">LPRB</option>
-				</select>
-				<br> 
 				<label for="varname-output">Variable:</label>
 				<select name="vname-output" id="varname-output"></select>
 				<br> 
@@ -55,7 +58,8 @@
 				<input type="date" id="date-output" name="date-output" min="2016-08-01" max="2019-12-31" value="2016-08-01">
 				<br> 
 				<label for="hour-output">Hour:</label>
-				<input type="number" id="hour-output" name="hour-output" min="1" max="24" value="1">
+				<input type="range" id="hour-output" name="hour-output" min="1" max="24" value="1" oninput="this.nextElementSibling.value = this.value">
+				<output>1</output>
 			</div>
 		</div>
 
@@ -66,14 +70,20 @@
 		<div class="column"><img class="render-output" id="renderedimg-output"></img></div>
 	</div>
 	<button class="button render-btn" onclick="render()">Render</button>
+	<p id="last-refreshed"></p>
 	<iframe style="display:none" name="hidden-form"></iframe>
 </body>
 
 <script>
-	document.getElementById('basin-output').onchange = () => {
-		getVariableNames(document.getElementById("basin-output").value).then((data) => {
+	document.getElementById('basin').onchange = () => {
+		changeBasinImg(document.getElementById("basin").value);
+		getVariableNames(document.getElementById("basin").value).then((data) => {
 			fillOptions(document.getElementById('varname-output'), data);
 		});
+	}
+
+	function changeBasinImg(path) {
+		document.getElementById("basin-map").src = "/static/img/"+path+".png";
 	}
 
 	function getVariableNames(path, type) {
@@ -98,10 +108,10 @@
 		});
 	}
 	window.onload = () => {
-		getVariableNames(document.getElementById("basin-output").value, 'output').then((data) => {
+		getVariableNames(document.getElementById("basin").value, 'output').then((data) => {
 			fillOptions(document.getElementById('varname-output'), data);
 		});
-		getVariableNames(document.getElementById("basin-input").value, 'input').then((data) => {
+		getVariableNames(document.getElementById("basin").value, 'input').then((data) => {
 			fillOptions(document.getElementById('varname-input'), data);
 		});
 	}

@@ -5,14 +5,14 @@ function render(initial){
 
     let i_perms = {
         type:'input',
-        ncpath:document.getElementById("basin-input").value, 
+        ncpath:document.getElementById("basin").value, 
         variable:document.getElementById("varname-input").value,
         date:document.getElementById("date-input").value,
         hour:document.getElementById("hour-input").value
     }
     let o_perms = {
         type:'output',
-        ncpath:document.getElementById("basin-output").value, 
+        ncpath:document.getElementById("basin").value, 
         variable:document.getElementById("varname-output").value,
         date:document.getElementById("date-output").value,
         hour:document.getElementById("hour-output").value
@@ -38,5 +38,8 @@ function render(initial){
 		const image = document.querySelector('.render-output');
 		image.src = image_url;
 	});
+
+    var refresh_time = new Date().toLocaleString();
+    document.getElementById("last-refreshed").innerHTML = "Last Refreshed: " + refresh_time;
 
 }

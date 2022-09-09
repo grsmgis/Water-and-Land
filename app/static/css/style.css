@@ -60,9 +60,22 @@ button{
   color: white
 }
 
+.single-column {
+  float: left;
+  width: 100%;
+}
 .column {
   float: left;
   width: 50%;
+}
+
+#black {
+  background-color: #000;
+}
+
+.basin-map {
+  width:inherit;
+
 }
 
 .row:after {
